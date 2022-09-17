@@ -3,3 +3,4 @@ Applications:
   random_route: true
   memory: 512M
   disk_quota: 1.5G
+ 

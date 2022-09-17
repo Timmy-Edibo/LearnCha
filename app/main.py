@@ -1,13 +1,15 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 import uvicorn
+import os
 
 
 from .Transcriber import transcriber
 from .Games import games
 from .Dictionary import dictionary
 from .Do_it_yourself import do_it_yourself
-from .Books import book_reader
+from .Books import retrieve_reader
+from .Books import upload_book
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="LearnCha", 
@@ -37,11 +39,13 @@ app.include_router(games.router)
 app.include_router(transcriber.router)
 app.include_router(dictionary.router)
 app.include_router(do_it_yourself.router)
-app.include_router(book_reader.router)
+app.include_router(retrieve_reader.router)
+app.include_router(upload_book.router)
+
 
 
 
 
 if __name__=="__main__":
-    uvicorn.run(app.main, port=8000, host="localhost")
+    uvicorn.run(app.main, port=8080, host="0.0.0.0")
 
