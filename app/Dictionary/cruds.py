@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
 import requests
 import json
 import os
@@ -32,20 +33,19 @@ def dictionary(word: str):
 
 
 
+def dictionary_text_to_speech(word: str):
+    try:
+        res = requests.get(f"{dictionary_url}{word}").json()
+
+        with open("test.json", "w") as file:
+            json.dump(res, file, indent=4)
+
+        word = res[0]["word"]
+        meaning_ = res[0]["meanings"][0]["definitions"][0]["definition"]
+
+        res = { "word":word, "definitions": meaning_}
+    except KeyError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Word not found in the dictionary" ) from e 
+    return res
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# meaning_all =  res[0]["meanings"][0]["definitions"]
-# meaning_noun = [x["definition"] for x in meaning_all]
