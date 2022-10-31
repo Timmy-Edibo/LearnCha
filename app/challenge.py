@@ -1,16 +1,18 @@
+from operator import or_
 from fastapi import Depends, APIRouter, HTTPException, status, File, UploadFile, Form, Body
 # from fastapi. import 
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, func, case, column
+from sqlalchemy import or_, func
+
+
 
 from typing import List
 
 from .import  models
 from .schemas import (ChallangeViewResponse, 
                         ChallangeProgressViewResponse,
-                        ChallengeListResponse, 
+                        ChallengeTrending, 
                         CreateChallengeForm, 
-                        AddChallengeMembers, 
                         UsersForm, ChallengeFormResponse)
 
 from .database import SessionLocal, engine
@@ -64,15 +66,16 @@ def view_challenge_with_progress(id: int, db: Session = Depends(get_db)):
             detail=f"challenge with id {id} not found")
 
 
-@router.get("/challenge/search/{name}", response_model=ChallangeViewResponse)
+@router.get("/challenge/search/{name}", response_model=List[ChallangeProgressViewResponse])
 def search_challenge(name: str, db: Session = Depends(get_db)):
-    if query := db.query(models.Challenge).filter(or_(func.lower(models.Challenge.name.contains(name)), 
-                                func.lower(models.Challenge.description.contains(name)))).first():
+    if query := db.query(models.Challenge).filter(
+        or_(models.Challenge.name.contains(name.lower()), 
+                            models.Challenge.description.contains(name.lower()))).all():
+
         return query
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=f"challenge {name} not found")        
-
+            detail=f"challenge with name {name} not found")        
 
 
 @router.get("/challenge/{id}")
@@ -91,15 +94,16 @@ def create_challenge(
                     current_user: UsersForm = Depends(get_current_user),
                 ):
     try:
-        # print(current_user.__dict__)
+
+        form.name = form.name.lower()
         query = models.Challenge(user_id=current_user.__dict__["id"], **form.__dict__)
         if check_challenge := db.query(models.Challenge).filter(models.Challenge.user_id==current_user.__dict__["id"]).filter(
-            models.Challenge.name.contains(query.name)).first():
+            models.Challenge.name == query.name ).first():
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
                 detail="You have an active challenge with the same name")
 
 
-        notify = models.ChallengeNotification(user_id=current_user.__dict__["id"], challenge_name=form.name, message=f"You have created a new challenge: {form.name}")
+        notify = models.ChallengeNotification(user_id=current_user.__dict__["id"], challenge_name=form.name.lower(), message=f"You have created a new challenge: {form.name.lower()}")
         db.add(query)
         db.add(notify)
 
@@ -154,10 +158,12 @@ def challenge(id: int, db: Session = Depends(get_db),
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already part of the challenge")    
 
 
+
 @router.post("/challenge/{id}/progress")
-def challenge_progress(id: int, image: UploadFile= File(...),
+async def challenge_progress(id: int,  image: UploadFile= File(...), 
              db: Session = Depends(get_db), 
                 current_user: UsersForm = Depends(get_current_user)):
+    
     user = current_user.__dict__["id"]
 
     self_created =db.query(models.Challenge).filter(
@@ -170,8 +176,8 @@ def challenge_progress(id: int, image: UploadFile= File(...),
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
                 detail=f"You have not created or joined any challenge with specified id {id}")
     file_format = ["png", "jpg", "jpeg"]
-    if [x for x in file_format if image.filename.endswith(x)]:
-
+    if [x for x in file_format if image.filename.split(".")[1]]:
+        
         results = cloudinary.uploader.upload(image.file, public_id=image.filename, folder="/Learncha_photos/")
         image_url = results.get("url")
         query = models.ChallengeProgress(user_id=user, challenge_id=id, image =image_url)
@@ -182,8 +188,6 @@ def challenge_progress(id: int, image: UploadFile= File(...),
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Accepted File type png, jpg or jpeg.")
 
 
-
-@router.get("/challenge/trending")
+@router.get("/trending/all", response_model=List[ChallengeTrending])
 def trending_challenge(db: Session = Depends(get_db)):
-    query =db.query(models.C)
-    pass
+    return db.query(models.Challenge).all()

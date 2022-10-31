@@ -24,11 +24,6 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/")
-def home():
-    return "Hello World"
-
-#######################################################################################################
 
 # @router.get("/users")
 # def users(db: Session = Depends(get_db)):
@@ -68,11 +63,10 @@ def challenge_progress(
     user = current_user.__dict__["id"]
 
     query = db.query(models.Users).filter(models.Users.id==user).first()
-    # limit(10).all()[::-1]
     return query
 
 
 @router.get("/users/{id}/challenge", response_model=List[ChallengeListResponse])
-def users(id:int, db: Session = Depends(get_db)):
+def users_(id:int, db: Session = Depends(get_db)):
     return db.query(models.Users).filter(models.Users.id ==id).all()
 

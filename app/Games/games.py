@@ -16,6 +16,7 @@ blockly_games =os.getenv("BLOCKLY_GAMES")
 game_room_two = os.getenv("GAMES_ROOM_TWO")
 swap_game = os.getenv("SWAP_GAME")
 Floppy_bird = os.getenv("FLOPPY_BIRD")
+forest_game = os.getenv("FOREST_GAME")
 
 
 @router.get("/wordle_game")
@@ -45,3 +46,7 @@ def game_five():
 @router.get("/floppy_bird")
 def game_six():    
     return RedirectResponse(Floppy_bird)
+
+@router.get("/forest_game")
+def game_seven():    
+    return RedirectResponse(forest_game)

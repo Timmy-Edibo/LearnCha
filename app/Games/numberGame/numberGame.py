@@ -1,8 +1,4 @@
-from asyncore import write
-from distutils.file_util import write_file
-from textwrap import indent
-from fastapi import APIRouter, status, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter
 
 
 router = APIRouter(prefix="/games", tags=["Number Game"])

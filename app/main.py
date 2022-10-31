@@ -11,6 +11,7 @@ from .Do_it_yourself import do_it_yourself
 from .Books import retrieve_reader
 from .Books import upload_book
 from .Games.numberGame import numberGame
+from .Weather import weather
 
 from  . import models
 from .database import engine
@@ -44,6 +45,7 @@ def home():
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(challenge.router)
+app.include_router(weather.router)
 app.include_router(games.router)
 app.include_router(transcriber.router)
 app.include_router(dictionary.router)

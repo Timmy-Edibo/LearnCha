@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Form, HTTPException, status
+from fastapi import APIRouter, Form, HTTPException, status, Depends
 
 
 router = APIRouter(prefix="/books", tags=["Retrieve Books"])
+
+from ..database import SessionLocal
+from sqlalchemy.orm import Session
+from ..import models
 
 
 from dotenv import load_dotenv
@@ -11,234 +15,45 @@ import cloudinary.uploader
 import cloudinary.api
 import cloudinary
 
+
+import os
+
 cloudinary.config( 
   cloud_name = "learncha", 
-  api_key = "635799119624934", 
-  api_secret = "hXsnfE0_ajAYij_KUOOUuKME4c4" 
+  api_key =os.getenv("CLOUDINARY_SECRET"), 
+  api_secret = os.getenv("CLOUDINARY_API_KEY")
 )
 
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-res = []
-@router.get("/retrieve/grade_one")
-async def drive_():
-  results = cloudinary.Search().expression("folder=LearnCha/grade_one").execute()
-  return [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]
-
-
-res = []
-response = set(res)
-@router.post("/retrieve/grade_one/search_book")
-async def drive_(filename: str = Form(Ellipsis)):
-  results = cloudinary.Search().expression(f"folder=LearnCha/grade_one AND filename:{filename}").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Not item with {filename} is found in the database")
- 
-#############################################################################################
-res = []
-@router.get("/retrieve/grade_two")
-async def drive_():
-  results = cloudinary.Search().expression("folder=LearnCha/grade_two").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, detail="Not item found")
+from ..schemas import Book
+from typing import List, Union
+from sqlalchemy import or_
 
 
-
-
-
-@router.post("/retrieve/grade_two/search_book")
-async def drive_(filename: str = Form(Ellipsis)):
-  results = cloudinary.Search().expression(f"folder=LearnCha/grade_two AND filename:{filename}").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Not item with {filename} is found in the database")
- 
-########################################################################################################
-res = []
-@router.get("/retrieve/grade_three")
-async def drive_():
-  results = cloudinary.Search().expression("folder=LearnCha/grade_three").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not item found")
-
-res = []
-@router.post("/retrieve/grade_three/search_book")
-async def drive_(filename: str = Form(Ellipsis)):
-  results = cloudinary.Search().expression(f"folder=LearnCha/grade_three AND filename:{filename}").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Not item with {filename} is found in the database")
- 
-        
-###################################################################################################
-res = []
-@router.get("/retrieve/grade_four")
-async def drive_():
-  results = cloudinary.Search().expression("folder=LearnCha/grade_four").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not item found")
-
-
-@router.post("/retrieve/grade_four/search_book")
-async def drive_(filename: str = Form(Ellipsis)):
-  results = cloudinary.Search().expression(f"folder=LearnCha/grade_four AND filename:{filename}").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Not item with {filename} is found in the database")
- 
-
-###########################################################################################
-res = []
-@router.get("/retrieve/grade_five")
-async def drive_():
-  results = cloudinary.Search().expression("folder=LearnCha/grade_five").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not item found")
-
-
-res = []
-@router.post("/retrieve/grade_five/search_book")
-async def drive_(filename: str = Form(Ellipsis)):
-  results = cloudinary.Search().expression(f"folder=LearnCha/grade_five AND filename:{filename}").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Not item with {filename} is found in the database")
- 
-
-##########################################################################################################
-res = []
-@router.get("/retrieve/grade_six")
-async def drive_():
-  results =  cloudinary.Search().expression("folder=LearnCha/grade_six").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not item found")
-
-
-res = []
-response = set(res)
-@router.post("/retrieve/grade_six/search_book")
-async def drive_(filename: str = Form(Ellipsis)):
-  results = cloudinary.Search().expression(f"folder=LearnCha/grade_six AND filename:{filename}").execute()
-  if res := [{
-      "filename": result["filename"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Not item with {filename} is found in the database")
+@router.get("/", response_model=List[Book])
+async def drive_(db:Session = Depends(get_db)):
+  return db.query(models.Books).all()
   
-#############################################################################################
+@router.get("/{id}", response_model=Book)
+async def drive_(id: int, db:Session = Depends(get_db)):
+  if query :=  db.query(models.Books).filter(models.Books.id==id).first():
+    return query
+  raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+   detail=f"Book with id {id} not found")
 
-res = []
-@router.get("/retrieve/all_books")
-def drive_():
-  results = cloudinary.api.resources(max_results=30)
-  if res := [{ 
-      "filename": result["public_id"],
-      "asset_id": result["asset_id"],
-      "format": result["format"],
-      "created": result["created_at"],
-      "url": result["url"]
-  } for result in results["resources"]]:
-    return res
-  else:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, detail="Not item found")
- 
+
+@router.get("/search", response_model=List[Book])
+async def drive_(category: Union[str, None]=None, name: Union[str, None]=None, db:Session = Depends(get_db)):
+    if query :=  db.query(models.Books).filter(or_(
+              models.Books.category.contains(str(category).lower()),
+              models.Books.name.contains(str(name).lower())
+              )).all():
+      return query
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")

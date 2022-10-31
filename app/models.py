@@ -1,7 +1,10 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
+from enum import unique
+import string
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table, DateTime    
 from sqlalchemy.orm import relationship
 
 from .database import Base
+from datetime import datetime
 
 
 class Users(Base):
@@ -34,7 +37,6 @@ class Challenge(Base):
     name = Column(String)
     challenge_type = Column(String)
     description = Column(String)
-    # image = Column(String)
     status = Column(String, default="active")
 
     users_table =  relationship("Users", back_populates = "challenge_table")
@@ -90,3 +92,41 @@ class JoinChallengeNotification(Base):
 
     user_join_notification =  relationship("Users", back_populates = "notifier_join")
     challenge_join_notification = relationship("Challenge", back_populates = "notifier_join")        
+
+
+
+class Books(Base):
+    __tablename__="books"
+
+    id =  Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True)
+    category = Column(String)
+    book_isbn = Column(String)
+    url = Column(String) 
+    created_at = Column(DateTime, default=datetime.now())
+
+    thumbnail =  relationship("BookThumbnail", back_populates = "book")
+
+
+class BookThumbnail(Base):
+    __tablename__="book_thumbnail"
+
+    id =  Column(Integer, primary_key=True, index=True)
+    book_id = Column(Integer, ForeignKey("books.id", ondelete="CASCADE"))
+    thumbnail_url = Column(String)
+
+    book =  relationship("Books", back_populates = "thumbnail")
+
+
+
+
+
+class Video(Base):
+    __tablename__="video"
+
+    id =  Column(Integer, primary_key=True, index=True)
+    video_title = Column(String, unique=True)
+    topic = Column(String)
+    subject = Column(String)
+    video_url = Column(String) 
+    created_at = Column(DateTime, default=datetime.now())

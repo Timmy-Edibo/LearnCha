@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
@@ -132,6 +133,41 @@ class ChallengeNotificationResponse(BaseModel):
     notifier: List[ChallengeNotification]
     notifier_join: List[JoinChallengeNotification]
 
+
+    class Config:
+        orm_mode = True
+
+
+class ChallengeprogressRes(BaseModel):
+    id:int
+    user_id: int
+    challenge_id: int
+    image: str
+
+    class Config:
+        orm_mode = True
+
+class ChallengeTrending(ChallangeViewResponse):
+    progress: List[ChallengeprogressRes]
+    # progress: List[ChallengeprogressRes]
+
+    class Config:
+        orm_mode = True
+
+class BookThumbnail(BaseModel):
+    book_id: int
+    thumbnail_url: str
+
+    class Config:
+        orm_mode = True
+class Book(BaseModel):
+    id: int
+    name: str
+    category: str
+    book_isbn: str
+    url: str
+    created_at: datetime
+    thumbnail: List[BookThumbnail]
 
     class Config:
         orm_mode = True
