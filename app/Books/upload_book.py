@@ -1,7 +1,11 @@
 from fastapi import APIRouter, File, UploadFile, status, Depends, Form, status, HTTPException
 
 router = APIRouter(prefix="/books", tags=["Upload Books"])
+from pdf2image import convert_from_path
 
+
+import os
+import shutil
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -11,14 +15,11 @@ import cloudinary.api
 import cloudinary
 
 cloudinary.config( 
-  cloud_name = "learncha", 
+  cloud_name = "globalgist", 
   api_key =os.getenv("CLOUDINARY_SECRET"), 
   api_secret = os.getenv("CLOUDINARY_API_KEY")
 )
 
-from pdf2image import convert_from_path
-import os
-import shutil
 
 from ..database import SessionLocal
 from sqlalchemy.orm import Session
@@ -47,7 +48,7 @@ async def retrieve_video(db: Session = Depends(get_db)):
 @router.post("/upload_book")
 async def drive(name: str = Form(), category: str = Form(), file: UploadFile = File(...), db: Session =Depends(get_db)):
     
-    results = cloudinary.uploader.upload(file.file, public_id=file.filename, folder="/LearnCha/books")
+    results = cloudinary.uploader.upload(file.file, public_id=file.filename, folder="/learncha/books")
     image_url = results.get("url")
 
     file_extension = file.filename.split(".")[1].lower()
@@ -88,7 +89,7 @@ async def upload_thumbnail(id: int, image: UploadFile = File(...), db: Session =
 
     with open("image_0.png", "rb") as file:
         byte_im = file.read()
-        results = cloudinary.uploader.upload(byte_im, public_id=image.filename, folder="/Learncha_photos/thumbnails/")
+        results = cloudinary.uploader.upload(byte_im, public_id=image.filename, folder="/learncha_photos/thumbnails/")
         image_url = results.get("url")
 
     os.remove(f"{image.filename}")
@@ -111,7 +112,7 @@ async def upload_video(video_title: str = Form(),
     if query := db.query(models.Video).filter(models.Video.video_title == video_title).first():
         raise HTTPException(status_code=401, detail="video uploaded already, video title is unique")
 
-    results = cloudinary.uploader.upload_large(video.file, public_id=video.filename, folder="/Learncha/videos/", resource_type = "video")
+    results = cloudinary.uploader.upload_large(video.file, public_id=video.filename, folder="/learncha/videos/", resource_type = "video")
     video_url = results.get("url")
     query = models.Video(video_url=video_url, video_title=video_title, subject=subject, topic=topic)
     db.add(query)
