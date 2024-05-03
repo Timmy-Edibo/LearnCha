@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-dictionary_url = os.getenv("DICTIONARY_URL")
+# dictionary_url = os.getenv("DICTIONARY_URL")
+dictionary_url="https://api.dictionaryapi.dev/api/v2/entries/en/"
 
 def dictionary(word: str):
     try:

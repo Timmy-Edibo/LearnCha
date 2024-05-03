@@ -25,12 +25,17 @@ app = FastAPI(title="LearnCha",
             version="1.0.0")
 
 
-# app.mount("/static", StaticFiles(directory="app/static"), name="static")
+origins = [
+    "http://localhost:3000",
+    "https://localhost:5000",
+    "http://localhost:8080",
+    "*",
+]
 
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
