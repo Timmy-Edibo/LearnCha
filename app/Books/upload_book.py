@@ -1,11 +1,8 @@
-from fastapi import APIRouter, File, UploadFile, status, Depends, Form, status, HTTPException
-
+from fastapi import APIRouter, File, UploadFile, status, Depends, Form, status, HTTPException, BackgroundTasks
+from app.Books.utils import delete_existing_thumbail, thumbnail_to_cloud
 router = APIRouter(prefix="/books", tags=["Upload Books"])
-from pdf2image import convert_from_path
-
-
+import secrets
 import os
-import shutil
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,8 +13,8 @@ import cloudinary
 
 cloudinary.config( 
   cloud_name = "globalgist", 
-  api_key =os.getenv("CLOUDINARY_SECRET"), 
-  api_secret = os.getenv("CLOUDINARY_API_KEY")
+  api_key =os.getenv("CLOUDINARY_API_KEY"), 
+  api_secret = os.getenv("CLOUDINARY_SECRET")
 )
 
 
@@ -33,11 +30,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-import secrets
-import pypdfium2 as pdfium
-import os
 
 
 @router.get("/retrieve_video/all")
@@ -63,46 +55,30 @@ async def drive(name: str = Form(), category: str = Form(), file: UploadFile = F
     db.refresh(query)
     return {"data": query, "status_code": status.HTTP_201_CREATED, "message": "Uploaded Successfully"}
 
-
-
-
 @router.post("/upload_thumbnail")
-async def upload_thumbnail(id: int, image: UploadFile = File(...), db: Session =Depends(get_db)):
+async def upload_thumbnail(background_task: BackgroundTasks, id: int, 
+            image: UploadFile = File(...), 
+            db: Session =Depends(get_db)):
 
-    with open(image.filename, "wb") as buffer:
-        shutil.copyfileobj(image.file, buffer)
-    
-        pdf = pdfium.PdfDocument(f"{image.filename}")
-        n_pages = len(pdf)
-        
-        for page_number in range(n_pages):
-            page = pdf.get_page(page_number)
-            pil_image = page.render_topil(
-                scale=1,
-                rotation=0,
-                crop=(0, 0, 0, 0),
-            )
-            pil_image.save(f"image_{page_number}.png")
-
-            if page_number == 0:
-                break
-
-    with open("image_0.png", "rb") as file:
-        byte_im = file.read()
-        results = cloudinary.uploader.upload(byte_im, public_id=image.filename, folder="/learncha_photos/thumbnails/")
-        image_url = results.get("url")
-
-    os.remove(f"{image.filename}")
-    os.remove("image_0.png")
-    query = models.BookThumbnail(book_id =id , thumbnail_url=image_url)
+    query = models.BookThumbnail(book_id =id , thumbnail_url="test_url")
     db.add(query)
     db.commit()
     db.refresh(query)
-    return {"respnse": query,
+
+    delete_existing_thumbail(query.book_id, query.id, db)    
+    background_task.add_task(thumbnail_to_cloud, query.id, query.book_id, db, image)
+
+    return {"response": query,
             "status": status.HTTP_201_CREATED,
             "message": "Uploaded Successfully"}
 
 
+@router.get("/get_all_thumbnails/all")
+async def get_all_thumbnails(db: Session =Depends(get_db)):
+
+    query = db.query(models.BookThumbnail).all()
+    return {"response": query,
+            "status": status.HTTP_200_OK}
 
 @router.post("/upload_video")
 async def upload_video(video_title: str = Form(), 
